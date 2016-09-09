@@ -10,7 +10,7 @@
 -- Для доступа к первому и второму элементу пары можно использовать функции fst и snd.
 
 sumprod :: (Integer, Integer) -> (Integer, Integer)
-sumprod p = (undefined, undefined)
+sumprod (x, y) = (x + y, x * y)
 
 -- должно быть True
 test1 = sumprod (2, 3) == (5, 6) && sumprod (-4, 5) == (1, -20)
@@ -21,12 +21,12 @@ test1 = sumprod (2, 3) == (5, 6) && sumprod (-4, 5) == (1, -20)
 -- Результат возвращать в виде кортежа из трёх элементов. Реализовать также обратное преобразование.
 
 sec2hms :: Int -> (Int, Int, Int)
-sec2hms s = undefined
+sec2hms s = (s `div` 3600, s `mod` 3600 `div` 60, s `mod` 60)
 
 hms2sec :: (Int, Int, Int) -> Int
 -- Здесь используется сопоставление с образцом для кортежей
 -- (сопоставляются элементы кортежа)
-hms2sec (h, m, s) = undefined
+hms2sec (h, m, s) = h * 3600 + m * 60 + s
 
 -- Реализовать с помощью hms2sec (здесь параметры заданы по отдельности)
 hms2sec' :: Int -> Int -> Int -> Int
@@ -35,7 +35,7 @@ hms2sec' = undefined
 -- должно быть True (тело функции можно не смотреть)
 test2 = and $ map (\x -> x == hms2sec (sec2hms x)) [1,10..10000]
 
--- 3) 
+-- 3)
 -- Написать функции, вычисляющие
 -- а) длину отрезка по координатам его концов;
 -- б) периметр и площадь треугольника по координатам вершин.
@@ -44,10 +44,15 @@ test2 = and $ map (\x -> x == hms2sec (sec2hms x)) [1,10..10000]
 type Point = (Double, Double)
 
 distance :: Point -> Point -> Double
-distance (x1, y1) (x2, y2) = undefined
+distance (x1, y1) (x2, y2) = sqrt $ (x1 - x2)^2 + (y1 - y2)^2
 
 -- triangle :: ??? -> (Double, Double)
-triangle _ = (p, s)
+triangle :: Point -> Point -> Point -> (Double, Double)
+triangle x y z = (p, s)
   where
-    p = undefined
-    s = undefined
+    a = distance x y
+    b = distance y z
+    c = distance z x
+    p = a + b + c
+    h = p / 2
+    s = sqrt $ h * (h - a) * (h - b) * (h - c)
