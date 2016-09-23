@@ -5,16 +5,24 @@
     некорректных значений параметров a и b.
 -}
 
-sum_ab_rec = undefined
 
-sum_ab_iter = undefined
+sum_ab_rec :: Integral a => a -> a -> a
+sum_ab_rec a b
+    | a >  b    = 0
+    | a <= b    = a + sum_ab_rec (a+1) b
+
+sum_ab_iter a b = iter a b 0
+    where
+        iter x y s
+            | x > y     = s
+            | otherwise = iter (x+1) y (s+x)
 
 -- 2) Определить рекурсивную функцию, определяющую количество чётных
 --    элементов в списке.
 
 nEven :: Integral a => [a] -> Int
 nEven [] = 0
-nEven (x:xs) = undefined
+nEven (x:xs) = (if even x then 1 else 0) + nEven xs
 
 {-
  3) Увеличить все элементы заданного списка в два раза с помощью рекурсии.
@@ -26,7 +34,8 @@ nEven (x:xs) = undefined
 -}
 
 doubleElems :: Num a => [a] -> [a]
-doubleElems = undefined
+doubleElems []   = []
+doubleElems (x:xs) = (2*x) : doubleElems xs
 
 {-
  4) Дан список целых чисел. Пользуясь рекурсией, сформировать новый
@@ -35,7 +44,10 @@ doubleElems = undefined
 -}
 
 fltOdd :: Integral a => [a] -> [a]
-fltOdd = undefined
+fltOdd [] = []
+fltOdd (x:xs)
+    | odd x     = x : fltOdd xs
+    | otherwise = fltOdd xs
 
 {-
  5) Написать рекурсивную функцию repl, которая по заданному целому
@@ -44,8 +56,9 @@ fltOdd = undefined
 -}
 
 repl :: Int -> a -> [a]
-repl 0 _ = []
-repl n a = undefined
+repl n a
+    | n <= 0    = []
+    | otherwise = a : repl (n-1) a
 
 {-
  6) Написать рекурсивную функцию, которая принимает на вход функцию и список,
@@ -54,12 +67,14 @@ repl n a = undefined
 -}
 
 processList :: (a -> a) -> [a] -> [a]
-processList = undefined
+processList _ []     = []
+processList f (x:xs) = (f x) : processList f xs
+
 
 -- Написать вторую реализацию функции doubleElems с использованием processList
 -- (левую часть определения менять нельзя)
 
-doubleElems' = undefined
+doubleElems' = processList (*2)
 
 {-
  7) Написать рекурсивную функцию, которая принимает на вход предикат
@@ -68,9 +83,12 @@ doubleElems' = undefined
 -}
 
 filterPred :: (a -> Bool) -> [a] -> [a]
-filterPred = undefined
+filterPred _ [] = []
+filterPred p (x:xs)
+    | p x       = x : filterPred p xs
+    | otherwise =     filterPred p xs
 
 -- Написать вторую реализацию функции fltOdd с использованием filterPred
 -- (левую часть определения менять нельзя)
 
-fltOdd' = undefined
+fltOdd' = filterPred odd

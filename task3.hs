@@ -11,26 +11,30 @@ import Data.List
 -- 1) Написать функцию, которая возвращает сумму первого и последнего элементов списка,
 --    если список непуст, и 0 в противном случае.
 
--- f1 :: ???
-f1 = undefined
+f1 :: Num a => [a] -> a
+f1 [] = 0
+f1 xs = head xs + last xs
 
 -- 2) Написать функцию, которая возвращает длину числового  списка, если в нём имеется
 --    нулевой элемент, и -1 в противном случае.
 
--- f2 :: ???
-f2 = undefined
+f2 :: (Num a, Eq a) => [a] -> Int
+f2 xs = if any ((==) 0) xs then length xs else -1
 
 -- 3) Реализовать аналог функции replicate, воспользовавшись функциями repeat и take.
 --    Рекомендация: постарайтесь воспользоваться операцией композиции.
 
 replicate' :: Int -> a -> [a]
-replicate' = undefined
+replicate' n a = take n (repeat a)
+
+-- replicate' = (. repeat) . take
+-- фигня какая-то
 
 -- 4) Посчитать количество слов в заданном предложении.
 --    Рекомендация: постарайтесь воспользоваться операцией композиции.
 
 ws :: String -> Int
-ws = undefined
+ws = length . words
 
 test_ws = ws "The quick brown fox jumps over the lazy dog" == 9
 
@@ -46,23 +50,23 @@ test_ws = ws "The quick brown fox jumps over the lazy dog" == 9
 
 f5a_1 = map f
   where
-    f = undefined
+    f x = x * 2
 
-f5a_2 = map (\x -> undefined)
+f5a_2 = map (\x -> x * 2)
 
-f5a_3 = map (undefined)
+f5a_3 = map (*2)
 
 f5b_1 = map f
   where
-    f = undefined
+    f x = if even x then x*2 else x
 
-f5b_2 = map (\x -> undefined)
+f5b_2 = map (\x -> if even x then x*2 else x)
 
 f5c_1 = map f
   where
-    f = undefined
+    f x = if even x then x else 0
 
-f5c_2 = map (\x -> undefined)
+f5c_2 = map (\x -> if even x then x else 0)
 
 -- 6) Удалить из целочисленного списка все элементы,
 --    превосходящие заданное целое число k.
@@ -70,20 +74,20 @@ f5c_2 = map (\x -> undefined)
 f6_1 :: Integer -> [Integer] -> [Integer]
 f6_1 k = filter f
  where
-   f = undefined
+   f = (>) k
 
 f6_2 :: Integer -> [Integer] -> [Integer]
-f6_2 k = filter (\x -> undefined)
+f6_2 k = filter (\x -> x > k)
 
 f6_3 :: Integer -> [Integer] -> [Integer]
-f6_3 k = filter (undefined)
+f6_3 = filter . (>)
 
 -- 7) Найти сумму и произведение элементов числового списка.
 
 sumprod :: Num a => [a] -> (a, a)
 sumprod = foldl step (0, 1)
   where
-    step = undefined
+    step (s, p) x = (s+x, p*x)
 
 -- 8) Сформировать список, содержащий каждый второй элемент исходного.
 every2nd :: [a] -> [a]
