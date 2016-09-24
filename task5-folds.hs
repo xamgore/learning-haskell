@@ -25,6 +25,44 @@
      параметром функции должно быть значение, возвращаемое по умолчанию).
 -}
 
+sumEvens :: (Integral a) => [a] -> a
+sumEvens = foldl addEven 0
+    where addEven x y = x + (if even y then y else 0)
+
+test_sumEvens = and $
+    map (\x -> sumEvens [1..x] == (sum $ filter even [1..x])) [1..1000]
+
+
+mean :: (Fractional a) => [a] -> a
+mean = uncurry (/) . foldr (\elem (sum, count) -> (elem + sum, count + 1)) (0, 0)
+
+test_mean = and $ [ mean [1..1] == 1, mean [1..3] == 2, mean [1..10] == 5.5 ]
+
+
+minVal :: (Integral a, Ord a) => [a] -> a
+minVal = foldl1 min
+
+test_minVal = and $ [ minVal [1..10] == 1, minVal [-1] == -1, minVal [2, 4, 6] == 2 ]
+
+
+minOddVal :: (Integral a, Ord a) => a -> [a] -> a
+minOddVal def = snd . foldl f (False, def)
+    where
+        f (exists, val) el
+            -- skip even elements
+            | even el    = (exists, val)
+            -- el is odd, we've found first min
+            | not exists = (True, el)
+            -- el is odd, improve min value
+            | otherwise  = (True, min val el)
+
+test_minOddVal = and [
+        minOddVal 5 [2, 2, 2, 4, 8, 10, 2, 0, 21, 1, 3, -1, 5, 7, 0] == -1,
+        minOddVal 5 [2, 2, 2, 2, 2] == 5,
+        minOddVal 4 [] == 4
+    ]
+
+
 {-
  2. Свёртки, формирующие списки
   a) Сформировать список, содержащий первые n элементов исходного.
@@ -37,6 +75,32 @@
      заданной функции двух аргументов к соответствующим элементам исходных списков.
 -}
 
+takeFirst n = fst . foldl f ([], 0)
+    where
+        f (xs, len) _ | len >= n = (xs, len)
+        f (xs, len) x = (xs ++ [x], len+1)
+
+test_takeFirst = and [
+        takeFirst 5 [1..10] == [1..5],
+        takeFirst 5 [1..3] == [1..3],
+        takeFirst 0 [1..10] == []
+    ]
+
+
+takeLast n = fst . foldr f ([], 0)
+    where
+        f _ (xs, len) | len >= n = (xs, len)
+        f x (xs, len) = (x:xs, len+1)
+
+test_takeLast = and [
+        takeLast 5 [1..10] == [6..10],
+        takeLast 5 [1..3] == [1..3],
+        takeLast 0 [1..10] == []
+    ]
+
+
+-- TODO
+
 {-
  3. Использование свёртки как носителя рекурсии (для запуска свёртки можно использовать
    список типа  [1..n]).
@@ -46,9 +110,44 @@
      n слагаемых).
 -}
 
+sum' a b = foldl1 (+) [a..b]
+
+test_sum' = and [
+        sum' 0 0 == 0,
+        sum' 1 10 == 55,
+        sum' (-10) (-1) == -55
+    ]
+
+
+sumFactorials :: (Integral a) => a -> a -> a
+sumFactorials a b = foldl1 (+) facts
+    where
+        first = foldl1 (*) [1..a]
+        facts = scanl  (*) first [a+1..b]
+
+test_sumFactorials = and [
+        sumFactorials 4 4 == 24,
+        sumFactorials 4 5 == 24 + 120,
+        sumFactorials 1 5 == sum [1, 2, 2*3, 2*3*4, 2*3*4*5]
+    ]
+
+
+calcSin x n = foldl1 (+) series
+    where
+        series = scanl f x [3,5..(2*n+1)]
+        f m s = (-1) * m * x * x / s / (s-1)
+
+equals v = abs(sin v - calcSin v 1000) < 0.0001
+
+test_calcSin = and [
+        equals $ pi/2,
+        equals $ pi/6,
+        equals $ pi/3,
+        equals 0
+    ]
+
 {-
  4. Решить задачу о поиске пути с максимальной суммой в треугольнике (см. лекцию 2) при условии,
    что необходимо дополнительно найти сам путь (к примеру, в виде закодированных направлений спуска:
    0 - влево, 1 - вправо). В решении допускается использование любых стандартных функций.
 -}
-

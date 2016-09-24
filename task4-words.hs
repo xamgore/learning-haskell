@@ -7,17 +7,19 @@
      с одной и той же буквы.
 -}
 
+import Data.Char
+
 wsToUpper :: [String] -> [String]
-wsToUpper = undefined
+wsToUpper = map $ map toUpper
 
 wsByLength :: Int -> [String] -> [String]
-wsByLength = undefined
+wsByLength n = filter $ (n ==) . length
 
 wsByFirstChar :: Char -> [String] -> [String]
-wsByFirstChar = undefined
+wsByFirstChar ch = filter $ (ch ==) . head
 
 wsSameChar :: [String] -> [String]
-wsSameChar = undefined
+wsSameChar = filter $ \s -> head s == last s
 
 {-
   2) Дана строка, содержащая слово и, возможно,
@@ -32,25 +34,25 @@ wsSameChar = undefined
 -}
 
 cleanWord :: String -> String
-cleanWord = undefined
+cleanWord = twice $ reverse . dropWhile (not.isAlpha)
+    where twice f = f . f
 
 test_cleanWord = (all (=="слово")
-                   $ map cleanWord ["слово", "  слово    ", "слово,",
-                                    "!слово!", " -слово-"])
+                   $ map cleanWord ["слово", "  слово    ", "слово,", "!слово!", " -слово-"])
                  && cleanWord " чудо-юдо   " == "чудо-юдо"
 
 -- 3) Дана строка, содержащая предложение на русском языке.
 --    Посчитать количество содержащихся в ней n-буквенных слов.
 
 wscount :: Int -> String -> Int
-wscount n = undefined . filter (undefined n) . undefined cleanWord . words
+wscount n = length . filter ((n ==) . length) . map cleanWord . words
+
+test_wscount = wscount 5 "Brick 123 quiz whangs 234 jumpy 3 veldt 444 fox!" == 3
 
 -- 4) Дан текст в виде строки символов, содержащий среди прочего
 --    числовые данные. Посчитать количество всех встречающихся в тексте чисел.
 
 countNumbers :: String -> Int
-countNumbers = undefined
+countNumbers = length . filter (all isDigit) . words
 
 test_countNumbers = countNumbers "Brick 123 quiz whangs 234 jumpy 3 veldt 444 fox!" == 4
-
-

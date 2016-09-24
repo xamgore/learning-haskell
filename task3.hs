@@ -28,6 +28,7 @@ replicate' :: Int -> a -> [a]
 replicate' n a = take n (repeat a)
 
 -- replicate' = (. repeat) . take
+
 -- фигня какая-то
 
 -- 4) Посчитать количество слов в заданном предложении.
@@ -93,13 +94,14 @@ sumprod = foldl step (0, 1)
 every2nd :: [a] -> [a]
 every2nd = fst . foldl step ([], False)
   where
-    step = undefined
+    step (xs, True)  x = (xs ++ [x], False)
+    step (xs, False) x = (xs,        True)
 
 test_every2nd = every2nd [1,2,3,4,5] == [2,4] && every2nd [5, 10] == [10]
 
 -- 9) Проверить, является ли заданное целое число простым.
 isPrime n = foldl check True [2..n `div` 2]
   where
-    check acc x = undefined
+    check acc x = acc && (n `mod` x /= 0)
 
 test_isPrime = isPrime 547 && isPrime 7927 && (not $ isPrime 4131)

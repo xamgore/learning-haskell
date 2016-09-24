@@ -4,22 +4,25 @@
 
 -- 1) Дан список. Удалить из него все отрицательные элементы.
 
-removeNeg :: Num a => [a] -> [a]
-removeNeg = undefined
+removeNeg :: Integral a => [a] -> [a]
+removeNeg [] = []
+removeNeg (x:xs) = if x < 0 then removeNeg xs else x : removeNeg xs
 
 -- 2) Дан список. Увеличить элементы с чётными значениями в два раза, оставив
 --    все остальные без изменений.
 
--- ???
+doubleEvens :: Integral a => [a] -> [a]
+doubleEvens [] = []
+doubleEvens (x:xs) = (if even x then 2 else 1) * x : doubleEvens xs
 
 -- 3) Дан список. Переставить местами первый и второй элементы,
 --    третий и четвёртый, пятый и шестой, и т.д.
 --    Если список имеет нечётную длину, последний элемент отбрасывается.
 
--- swapElts :: ???
-swapElts [] = undefined
-swapElts [x] = undefined
-swapElts (x:y:xs) = undefined
+swapElts :: [a] -> [a]
+swapElts [] = []
+swapElts [x] = []
+swapElts (x:y:xs) = y:x:swapElts xs
 
 -- 4)
 -- Даны два списка целых чисел. Сформировать список, каждый элемент которого равен сумме
@@ -27,14 +30,17 @@ swapElts (x:y:xs) = undefined
 combine_plus :: [Integer] -> [Integer] -> [Integer]
 combine_plus [] ys = ys
 combine_plus xs [] = xs
-combine_plus (x:xs) (y:ys) = undefined
+combine_plus (x:xs) (y:ys) = (x+y) : combine_plus xs ys
 
 
 -- 5)
 -- Даны два списка. Сформировать новый список, содержащий пары из соответствующих элементов
 -- исходных списков. Хвост более длинного списка отбросить.
 
--- ???
+zip' :: [a] -> [b] -> [(a, b)]
+zip' [] _ = []
+zip' _ [] = []
+zip' (x:xs) (y:ys) = (x, y) : zip' xs ys
 
 -- 6) Написать функции, которые по заданному n возвращают список,
 --    состоящий из n первых натуральных чисел
@@ -42,36 +48,44 @@ combine_plus (x:xs) (y:ys) = undefined
 -- а) в порядке убывания;
 
 nats_dec :: Integer -> [Integer]
-nats_dec = undefined
+nats_dec 0 = []
+nats_dec n = n : nats_dec (n-1)
 
 -- б) в порядке возрастания.
 
 nats_inc :: Integer -> [Integer]
-nats_inc = undefined
+nats_inc 0 = []
+nats_inc n = nats_inc (n-1) ++ [n]
 
 -- 7) Дан список, найти его последний элемент.
 
 lastElt :: [a] -> a
-lastElt = undefined
+lastElt [x] = x
+lastElt (x:xs) = lastElt xs
 
 -- 8) Дан элемент типа a и список [a]. Вставить между всеми элементами списка заданный элемент.
 -- Например, при заданных 0 и [1,2,3] должно получиться [1,0,2,0,3].
 
--- ???
+join :: a -> [a] -> [a]
+join _ [] = []
+join _ [x] = [x]
+join sep (x:xs) = x : sep : join sep xs
 
 -- 9) Написать функцию, которая разбивает список на два подсписка: элементы из начала списка,
 --    совпадающие с первым элементом, и все остальные элементы, например:
 --    [1,1,1,2,3,1] -> ([1,1,1], [2,3,1]).
 
 divide :: Eq a => [a] -> ([a], [a])
-divide = undefined
+divide [x]    = undefined
+
 
 -- 10) Написать функцию, которая последовательно применяет заданную функцию к двум
 --     подряд идущим элементам списка, заменяя первый из них на результат применения
 --     и постепенно перемещаясь к концу списка. Длина списка при этом уменьшается на 1.
 
 slide :: (a -> a -> a) -> [a] -> [a]
-slide = undefined
+slide f [x, y]   = [f x y]
+slide f (x:y:ys) = (f x y) : slide f (y:ys)
 
 -- Должно быть True
 test_slide = slide (+) [1,2,3,4] == [3, 5, 7] && slide (*) [1,2,3] == [2, 6]
