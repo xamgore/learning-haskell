@@ -2,21 +2,48 @@
 
 module Drunkard where
 
+import Data.Ord
+import Data.List
+import Data.Maybe
+
 {-
   1. Определить типы данных, необходимые для представления игральной карты в игре «Пьяница»,
   учитывая, что всего в колоде 52 карты.
 -}
 
-data Suit
+data Suit = Spades | Hearts | Diamonds | Clubs deriving (Eq)
 
-data Value
+instance Show Suit where
+    show Spades   = "♠"
+    show Hearts   = "♥"
+    show Diamonds = "♦"
+    show Clubs    = "♣"
+
+data Value = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten |
+        Jack | Queen | King | Ace deriving (Eq, Ord, Enum)
+
+instance Show Value where
+    show Ace   = "A"
+    show King  = "K"
+    show Queen = "Q"
+    show Jack  = "J"
+    show v     = show $ fromJust(elemIndex v [Two .. Ten]) + 2
 
 data Card = Card Value Suit
+
+instance Show Card where
+    show (Card v s) = show v ++ show s
+
+of' :: Suit -> Suit
+of' = id
+
+card :: Value -> (Suit -> Suit) -> Suit -> Card
+card = (.) . Card
 
 -- 2. Определить функцию, проверяющую, что две переданные ей карты одной масти.
 
 sameSuit :: Card -> Card -> Bool
-sameSuit = undefined
+sameSuit (Card _ s) (Card _ t) = s == t
 
 {-
   3. Определить функцию, проверяющую, что переданная ей первой карта старше второй
@@ -24,12 +51,15 @@ sameSuit = undefined
   карты одинакового старшинства.
 -}
 
+valueOf :: Card -> Value
+valueOf (Card v _) = v
+
 beats :: Card -> Card -> Ordering
-c1 `beats` c2 = undefined
+c1 `beats` c2 = comparing valueOf c1 c2
 
 {-
   4. Определить функцию, которая по паре списков карт возвращает новую пару списков карт
-  с учетом правил игры «Пьяница» (один раунд игры): 
+  с учетом правил игры «Пьяница» (один раунд игры):
     * из вершин списков берутся две карты и добавляются в конец того списка, карта из
       которого старше оставшейся;
     * если первые взятые карты совпадают по достоинству, то из списков берутся и
@@ -37,28 +67,57 @@ c1 `beats` c2 = undefined
       раунда).
 -}
 
-game_round :: ([Card], [Card]) -> ([Card], [Card])
-game_round = undefined
+type State = ([Card], [Card])
+
+gameRound :: State -> Maybe State
+gameRound (xs, ys) = step result
+    where
+        rounds    = zip [1..] (zipWith beats xs ys)
+        result    = find ((/= EQ) . snd) rounds
+        win count = flat $ take count $ zip xs ys
+        flat      = foldr (\(a,b) ls -> a:b:ls) []
+
+        step res = case res of
+            Just (count, GT) -> Just (drop count xs ++ win count, drop count ys)
+            Just (count, LT) -> Just (drop count xs, drop count ys ++ win count)
+            _                -> Nothing
 
 {-
   5. Определить функцию, которая по паре списков возвращает количество раундов, необходимых
   для завершения игры (одна из колод оказывается пустой), и номер победителя.
 -}
 
-data Winner = First | Second
+data Winner = First | Second | Nobody deriving (Show)
 
-game :: ([Card], [Card]) -> (Winner, Int)
-game = undefined
+
+game :: State -> (Winner, Int, [State])
+
+game s@([], _)  = (Second, 0, [s])
+game s@(_, [])  = (First,  0, [s])
+
+game s = case gameRound s of
+            Just nextState -> next $ game nextState
+            Nothing        -> (Nobody, 0, [s])
+        where
+            next (win, rounds, his) = (win, rounds + 1, s : his)
 
 {-
   6. Приведите здесь результаты как минимум пяти запусков функции game (в каждом списке
   изначально должно быть не менее 10 карт).
 -}
 
+-- λ> gameRound ([card Six of' Spades, card King of' Spades], [card Six of' Hearts, card Ace of' Hearts])
+-- Just ([],[6♠,6♥,K♠,A♥])
+
+-- λ> gameRound ([], [card Six of' Spades, card King of' Spades, card Six of' Hearts, card Ace of' Hearts])
+-- Nothing
+
 {-
   7 (необязательное упражнение). Реализуйте версию функции game, которая помимо результатов
   игры возвращает запись всех ходов (карты, выкладываемые по ходу игры для сравнения).
 -}
+
+-- game возвращает третий элемент кортежа, историю ходов
 
 {-
   8 (необязательное упражнение). При выполнении функций из упражнений 4 и 5 возможно
@@ -68,3 +127,5 @@ game = undefined
   обнаружения факта зацикливания? Измените соответствующим образом типовые аннотации и
   напишите безопасные по отношению к зацикливанию версии функций game_round и game.
 -}
+
+-- готово

@@ -7,10 +7,7 @@ module Logic3 where
   реализацию требуемых функций.
 -}
 
-data Logic3 = T -- Истина
-            | U -- Неизвестно
-            | F -- Ложь
-            deriving(Eq)
+data Logic3 = F | U | T deriving(Eq, Ord, Show)
 
 {-
   2. Реализовать логическую операцию not3, определяемую таблицей:
@@ -20,7 +17,7 @@ data Logic3 = T -- Истина
   T | U
   U | F
   F | T
-  
+
   Замечание. Отрицание, как и любую другую функцию трёхзначной логики, обобщающую соответствующую
   функцию двоичной логики, можно определить разными способами. Ясно, что свойства таких функций
   будут различаться. В данном определении было обобщено свойство «циклического сдвига», в другом
@@ -31,7 +28,9 @@ data Logic3 = T -- Истина
 -}
 
 not3 :: Logic3 -> Logic3
-not3 = undefined
+not3 T = U
+not3 U = F
+not3 F = T
 
 {-
   3. Реализовать логические операции \/ (дизъюнкция) и /\ (конъюнкция), определяемые следующими
@@ -39,28 +38,29 @@ not3 = undefined
   строка — правому аргументу):
 
   /\ |  T  U  F         \/ |  T  U  F
-  -------------         ------------- 
+  -------------         -------------
   T  |  T  U  F         T  |  T  T  T
   U  |  U  U  F         U  |  T  U  U
   F  |  F  F  F         F  |  T  U  F
 
 -}
 
-(\/) :: Logic3 -> Logic3 -> Logic3
-a \/ b = undefined
-
 (/\) :: Logic3 -> Logic3 -> Logic3
-a /\ b = undefined
+(/\) = min
+
+(\/) :: Logic3 -> Logic3 -> Logic3
+(\/) = max
+
 
 -- 4. Реализовать аналоги стандартных функций and, or, any, all для случая трёхзначной логики.
 
 and3, or3 :: [Logic3] -> Logic3
-and3 = undefined
-or3 = undefined
+and3 = foldl1 (/\)
+or3  = foldl1 (\/)
 
 any3, all3 :: (a -> Logic3) -> [a] -> Logic3
-any3 = undefined
-all3 = undefined
+any3 = (or3  . ) . map
+all3 = (and3 . ) . map
 
 {-
   5. Перебирая все возможные значения логической переменной, доказать тождественную истинность
@@ -68,7 +68,8 @@ all3 = undefined
 -}
 
 excluded_fourth :: Logic3
-excluded_fourth = undefined
+excluded_fourth = and3 [ f x | x <- [T, U, F] ]
+    where f x = or3 [x, not3 x, not3 $ not3 x]
 
 -- Должно быть True
 test_excluded_fourth = excluded_fourth == T
