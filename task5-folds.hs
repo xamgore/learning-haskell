@@ -1,3 +1,5 @@
+import Control.Arrow
+
 {-
   Все задачи в этом упражнении должны решаться исключительно с помощью свёрток.
   Явная рекурсия не допускается. Если в решении в качестве вспомогательной
@@ -99,7 +101,72 @@ test_takeLast = and [
     ]
 
 
--- TODO
+greaterThanLeft list@(a:_) =
+    snd $ foldl f (a, []) list
+        where
+            f (left, xs) x | left < x  = (x, xs ++ [x])
+            f (_, xs)    x             = (x, xs)
+
+test_greaterThenLeft = and [
+        greaterThanLeft [1..10] == [2..10],
+        greaterThanLeft [1, 2, 1, 2] == [2, 2],
+        null $ greaterThanLeft [10, 9..1]
+    ]
+
+
+findLocalMins :: (Ord a) => [a] -> [a]
+findLocalMins (x:y:xs) = third $ foldl f (x, y, []) xs
+    where
+        third (_, _, x) = x
+        f (x, y, ls) z = (y, z, if x > y && y < z then y:ls else ls)
+
+test_findLocalMins = and [
+        findLocalMins [1, 0, 1] == [0],
+        null $ findLocalMins [1, 0, 0, 1],
+        findLocalMins [1, 0, 1, 0, 1] == [0, 0]
+    ]
+
+
+repeat' a n = foldl (\xs _ -> a:xs) [] [1..n]
+
+enlarge n = foldr (\x xs -> repeat' x n ++ xs) []
+
+test_enlarge = and [
+        enlarge 1 [1, 2, 3,4] == [1,2,3,4],
+        enlarge 2 [1, 2] == [1,1,2,2],
+        null $ enlarge 0 [1,2,3,4]
+    ]
+
+
+removeDupls = foldr f []
+    where
+        f x [] = [x]
+        f x s@(y:_)
+            | x == y    = s
+            | otherwise = x:s
+
+test_removeDupls = and [
+        removeDupls [1,1,2,2,2,1,1,1,0,1,1] == [1,2,1,0,1],
+        removeDupls [1..10] == [1..10],
+        removeDupls [1,1,1,1] == [1],
+        removeDupls [1] == [1],
+        null $ removeDupls []
+    ]
+
+
+zipWith' :: (a -> b -> c) -> [a] -> [b] -> [c]
+zipWith' f = foldr step done
+    where
+        done ys              = []
+        step x zipsfn []     = []
+        step x zipsfn (y:ys) = f x y : zipsfn ys
+
+test_zipWith' = and [
+        zipWith' (,) [1, 2] [1, 2] == [(1,1), (2,2)],
+        zipWith' (,) [1] [1] == [(1,1)],
+        zipWith' (,) [1, 2] [1] == [(1,1)],
+        zipWith' (,) [1] [1, 2] == [(1,1)]
+    ]
 
 {-
  3. Использование свёртки как носителя рекурсии (для запуска свёртки можно использовать
@@ -151,3 +218,18 @@ test_calcSin = and [
    что необходимо дополнительно найти сам путь (к примеру, в виде закодированных направлений спуска:
    0 - влево, 1 - вправо). В решении допускается использование любых стандартных функций.
 -}
+
+data Direction = L | R deriving (Eq, Ord, Show)
+
+downstep row = zipWith add theBest
+    where
+        add (x, y) z = (x + z, y)
+        theBest = zipWith max toLeft toRight
+        toLeft  = step R ((0, []) : row)
+        toRight = step L (row ++ [(0, [])])
+        step d  = map (second ((:) d))
+
+answer = rev . maximum . foldl downstep []
+    where rev (v, h) = (v, tail $ reverse h)
+
+test = answer [[3],[7,4],[2,4,6],[8,5,9,3]] == (23, [L,R,R])

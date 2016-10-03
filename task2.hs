@@ -76,7 +76,7 @@ join sep (x:xs) = x : sep : join sep xs
 --    [1,1,1,2,3,1] -> ([1,1,1], [2,3,1]).
 
 divide :: Eq a => [a] -> ([a], [a])
-divide [x]    = undefined
+divide (x:xs) = (takeWhile (== x), dropWhile (== x))
 
 
 -- 10) Написать функцию, которая последовательно применяет заданную функцию к двум
