@@ -1,5 +1,3 @@
-{-# LANGUAGE EmptyDataDecls #-}
-
 module FileGen where
 
 {-
@@ -26,22 +24,49 @@ module FileGen where
 -}
 
 import System.Environment
+import System.Random
+import Data.List
+
 
 -- Тип данных для представления параметров генерации
-data GenParams
+data Params = Text String Int String | Rand String Int Int deriving (Show)
 
 -- Разбор параметров командной строки
-parseArgs :: [String] -> Maybe GenParams
-parseArgs [] = Nothing
-parseArgs (mode : args) = undefined
+parseArgs :: [String] -> Maybe Params
+parseArgs [mode, file, count, param]
+    | mode == "text"   = Just $ Text file (read count) param
+    | mode == "random" = Just $ Rand file (read count) (read param)
+parseArgs _ = Nothing
 
 -- Генерация файла
-createFile :: GenParams -> IO ()
-createFile = undefined
+createFile :: Params -> IO ()
+
+createFile (Text file count str) =
+    writeFile file $ concat $ replicate count str
+
+createFile (Rand file m n) = do
+    gen <- newStdGen
+    writeFile file $ join $ rows (randoms gen :: [Integer])
+        where
+            joinNums = unwords . map show
+            join     = intercalate "\n" . map joinNums
+            rows  xs = splitBy n $ take (m * n) xs
+
+-- 8 961 3274743 Владимир
+-- 8 988 5756151
+
+splitBy :: Int -> [a] -> [[a]]
+splitBy n xs = filter (not.null) division
+    where parts    = length xs `div` n
+          division = map (take n . flip drop xs . (* n)) [0 .. parts]
 
 -- Вывод информации об использовании генератора
 usage :: IO ()
-usage = undefined
+usage = do
+    putStrLn "text <out.txt> <n> <string>"
+    putStrLn "   repeat string n-times and save to file"
+    putStrLn "rand <out.txt> <m> <n>"
+    putStrLn "   generate file with m-rows of n random nums"
 
 main :: IO ()
 main = do

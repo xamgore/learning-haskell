@@ -1,6 +1,8 @@
 {-# LANGUAGE EmptyDataDecls #-}
 
 import System.Environment
+import Data.List
+import Data.Ord
 
 {-
   Разработайте тип данных Host для хранения следующей информации:
@@ -9,7 +11,7 @@ import System.Environment
    * Страна
 -}
 
-data Host
+data Host = Host { ip :: String, name :: String, country :: String } deriving Show
 
 {-
    Реализуйте функцию, которая по заданной строке возвращает значение типа Host.
@@ -17,8 +19,11 @@ data Host
    Название страны может состоять из более чем одного слова.
 -}
 
-str2host :: String -> Host
-str2host = undefined
+parseHost :: String -> Host
+parseHost = f . words
+    where
+        f (i:n:ws) = Host { ip = i, name = n, country = unwords ws }
+        f other    = error $ "smth strange with input " ++ unwords other
 
 {-
    Реализуйте функцию, которая загружает из файла с заданным именем
@@ -26,7 +31,9 @@ str2host = undefined
 -}
 
 loadData :: FilePath -> IO [Host]
-loadData = undefined
+loadData fname = do
+    content <- readFile fname
+    return $ map parseHost $ lines content
 
 {-
    Напишите функции, которые по заданному списку хостов находят следующую
@@ -37,14 +44,35 @@ loadData = undefined
    * Отчёт 4: страна с наибольшим количеством хостов
 
    Явная рекурсия в отчётах не допускается, следует использовать функции
-   высших порядков. 
+   высших порядков.
 -}
 
-report1 :: [Host] -> String -> Int
-report1 = undefined
+report1 :: String -> [Host] -> Int
+report1 c = length . filter (== c) . map country
 
--- Отчёты 2--4
--- ???
+-- report1 "Russia" == 56
+
+report2 :: [Host] -> Int
+report2 = length . nubBy (\h1 h2 -> country h1 == country h2)
+
+-- report2 == 250
+
+report3 :: [Host] -> [Host]
+report3 hosts = filter ((== m) . length . name) hosts
+    where   m = maximum $ map (length . name) hosts
+
+-- report3 == navshipyd-pearl-harbor
+
+report4 :: [Host] -> [String]
+report4 hosts = map (country . head) maxgrs
+    where
+        maxlen = length (head clases)
+        maxgrs = takeWhile ((== maxlen) . length) clases
+        clases = sortBy (flip $ comparing length) groups
+        groups = groupBy (\h1 h2 -> country h1 == country h2) sorted
+        sorted = sortBy (comparing country) hosts
+
+-- report4 == ["Belize","Dominican Republic"]
 
 {-
    Напишите основную программу, которая читает параметр командной строки --- имя файла,
@@ -52,7 +80,17 @@ report1 = undefined
 -}
 
 main = do
-  undefined
-  hosts <- loadData undefined
-  print $ report1 hosts "Russia"
-  undefined
+  args <- getArgs
+  hosts <- loadData $ head args
+
+  putStr "\nAmount of hosts from Russia: "
+  print $ report1 "Russia" hosts
+
+  putStr "Amount of countries: "
+  print $ report2 hosts
+
+  putStrLn "\nList of hosts with max length:"
+  print $ report3 hosts
+
+  putStrLn "\nCountries with maximum hosts:"
+  print $ report4 hosts
