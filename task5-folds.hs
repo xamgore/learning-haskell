@@ -155,11 +155,10 @@ test_removeDupls = and [
 
 
 zipWith' :: (a -> b -> c) -> [a] -> [b] -> [c]
-zipWith' f = foldr step done
+zipWith' foo xs = snd . foldl f (xs, [])
     where
-        done ys              = []
-        step x zipsfn []     = []
-        step x zipsfn (y:ys) = f x y : zipsfn ys
+        f ([],   res) _ = ([], res)
+        f (x:xs, res) y = (xs, res ++ [foo x y])
 
 test_zipWith' = and [
         zipWith' (,) [1, 2] [1, 2] == [(1,1), (2,2)],
@@ -227,7 +226,7 @@ downstep row = zipWith add theBest
         theBest = zipWith max toLeft toRight
         toLeft  = step R ((0, []) : row)
         toRight = step L (row ++ [(0, [])])
-        step d  = map (second ((:) d))
+        step d  = map $ second ((:) d)
 
 answer = rev . maximum . foldl downstep []
     where rev (v, h) = (v, tail $ reverse h)
