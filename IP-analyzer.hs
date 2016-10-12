@@ -1,6 +1,7 @@
 {-# LANGUAGE EmptyDataDecls #-}
 
 import System.Environment
+import Data.Function
 import Data.List
 import Data.Ord
 
@@ -53,7 +54,7 @@ report1 c = length . filter (== c) . map country
 -- report1 "Russia" == 56
 
 report2 :: [Host] -> Int
-report2 = length . nubBy (\h1 h2 -> country h1 == country h2)
+report2 = length . nubBy ((==) `on` country)
 
 -- report2 == 250
 
@@ -69,7 +70,7 @@ report4 hosts = map (country . head) maxgrs
         maxlen = length (head clases)
         maxgrs = takeWhile ((== maxlen) . length) clases
         clases = sortBy (flip $ comparing length) groups
-        groups = groupBy (\h1 h2 -> country h1 == country h2) sorted
+        groups = groupBy ((==) `on` country) sorted
         sorted = sortBy (comparing country) hosts
 
 -- report4 == ["Belize","Dominican Republic"]
@@ -79,6 +80,7 @@ report4 hosts = map (country . head) maxgrs
    загружает из него список хостов и печатает отчёты 1-4.
 -}
 
+main :: IO ()
 main = do
   args <- getArgs
   hosts <- loadData $ head args
