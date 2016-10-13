@@ -1,0 +1,4 @@
+Strebezh Igor Ahmedovich;20;4;9
+Orishenko Alexandra Olegovna;19;4;9
+Senchenko Natalia Gennadievna;21;4;9
+Some Cool Guy;19;4;8
