@@ -14,6 +14,7 @@ import qualified Data.IntSet as Set
 import Data.Array.IArray
 import Control.Monad
 
+
 nubSet :: Set.IntSet -> Int
 nubSet = Set.size
 
@@ -38,7 +39,7 @@ main = do
     let fname = "numbers.txt"
     content <- readFile fname
 
-    let xs = map read $ concatMap words $ lines content
+    let xs = map read $ words content
         n  = nubSet $ Set.fromList xs
 
         results = [

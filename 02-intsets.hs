@@ -6,20 +6,30 @@
   B) какие и сколько чисел содержатся хотя бы в одном из данных файлов (объединение).
 -}
 
+import qualified Data.IntSet as S
 import System.Environment
+import Control.Applicative ()
+import Control.Monad
+
 
 readNumFile :: FilePath -> IO [Int]
-readNumFile = undefined
+readNumFile f = (map read . words) <$> readFile f
 
-readAllFiles :: [String] -> IO [[Int]]
+readAllFiles :: [FilePath] -> IO [[Int]]
 readAllFiles = mapM readNumFile
 
-solveA, solveB :: [[Int]] -> (Int, [Int])
-solveA = undefined
-solveB = undefined
 
+info :: S.IntSet -> (Int, [Int])
+info = liftM2 (,) S.size S.toList
+
+solveA, solveB :: [[Int]] -> (Int, [Int])
+solveA = info . foldl1 S.intersection . map S.fromList
+solveB = info . S.unions . map S.fromList
+
+
+main :: IO ()
 main = do
-  args <- getArgs
-  xss <- readAllFiles args
-  print $ solveA xss
-  print $ solveB xss
+    xs <- getArgs >>= readAllFiles
+
+    print $ solveA xs
+    print $ solveB xs
