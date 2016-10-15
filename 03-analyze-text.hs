@@ -12,4 +12,36 @@
   текстах того же или большего размера. Сравните результаты.
 -}
 
-main = undefined
+import qualified Data.Map.Strict as M
+import Data.List (sortBy)
+import Data.Function
+import Data.Char (toLower, isAlpha)
+import System.Environment
+
+main :: IO ()
+main = do
+    args <- getArgs
+
+    case head args of
+        "top" -> readFile (args!!1) >>= printTop50
+        _  -> do
+            putStrLn "  top <file> -- print top 50 words"
+
+
+
+
+printTop50 :: String -> IO ()
+printTop50 = mapM_ (\(s, c) -> putStrLn $ unwords [s, show c]) . take 50 . topWords
+
+topWords :: String -> [(String, Int)]
+topWords =
+    sortBy (flip compare `on` snd) . M.toAscList .
+    M.fromListWith (+) . flip zip (repeat 1) .
+    filter isWord . map clean . words . map toLower
+
+isWord :: String -> Bool
+isWord s = all (\ c -> isAlpha c || c == '-') s && not (null s)
+
+clean :: String -> String
+clean = twice $ reverse . dropWhile (not.isAlpha)
+    where twice f = f . f
