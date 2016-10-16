@@ -97,7 +97,10 @@ game s@(_, [])  = (First,  0, [s])
 
 game s = case gameRound s of
             Just nextState -> next $ game nextState
-            Nothing        -> (Nobody, 0, [s])
+            Nothing        -> case compare (length $ fst s) (length $ snd s) of
+                                EQ -> (Nobody, 0, [s])
+                                GT -> (First,  1, [s])
+                                LT -> (Second, 1, [s])
         where
             next (win, rounds, his) = (win, rounds + 1, s : his)
 
