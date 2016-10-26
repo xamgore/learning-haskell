@@ -1,0 +1,5 @@
+LOAD a FROM a.txt
+LOAD b FROM b.txt
+CALC c AS MULT a b
+CALC d AS PLUS b c
+SAVE d TO d.txt
