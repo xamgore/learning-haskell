@@ -1,31 +1,37 @@
 import Control.Applicative
+import System.Random
+import GHC.Base
 
 {-
-  Пользуясь возможностями аппликативных функторов, определите функцию, 
+  Пользуясь возможностями аппликативных функторов, определите функцию,
   вычисляющую наибольший из результатов двух вычислений (значений в некотором
   контексте), принимаемых в качестве параметров (для результатов имеется
   экземпляр класса типов Ord).
 -}
 
 maxApp2 :: (Ord a, Applicative f) => f a -> f a -> f a
-maxApp2 = undefined
+maxApp2 = liftA2 max   -- f <$> a <*> b
 
 {- Реализуйте аналогичную функцию в случае трёх заданных значений в контексте. -}
 
 maxApp3 :: (Ord a, Applicative f) => f a -> f a -> f a -> f a
-maxApp3 = undefined
+maxApp3 = liftA3 ((max .) . max)
 
 {- Реализуйте аналогичную функцию в случае списка значений в контексте. -}
 
 maxApp :: (Ord a, Applicative f) => [f a] -> f a
-maxApp = undefined
+maxApp = foldl1 maxApp2
 
 {-
   Продемонстрируйте использование написанных функций для аппликативных функторов Maybe,
   список (для каждого из двух экземпляров), Either String и IO.
 -}
 
-main = undefined
+main :: IO ()
+main = do
+    print $ maxApp2 (Just 1) Nothing
+    print $ maxApp [Left 1, Right "test", Right ""]
+    (maxApp2 (randomRIO(1, 5)) (randomRIO(6, 10)) :: IO Int) >>= print
 
 {- (необязательно)
   Ясно ли вам, что вы реализовали нечто, похожее на моноид на аппликативных функторах?
