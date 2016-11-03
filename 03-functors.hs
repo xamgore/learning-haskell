@@ -13,4 +13,6 @@
 
 data Tree a = Leaf (Maybe a) | Branch (Tree a) (Maybe a) (Tree a) deriving Show
 
--- instance ???
+instance Functor Tree where
+    fmap f (Leaf x)                = Leaf (fmap f x)
+    fmap f (Branch left val right) = Branch (fmap f left) (fmap f val) (fmap f right)
