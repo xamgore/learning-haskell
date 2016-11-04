@@ -5,7 +5,7 @@ import System.Environment
 -}
 
 totalLength :: [String] -> Int
-totalLength = undefined
+totalLength = sum . map length
 
 {-
   Написать функцию, которая по заданному символу и целому числу n строит список строк,
@@ -13,19 +13,23 @@ totalLength = undefined
 -}
 
 build1 :: Char -> Int -> Maybe [String]
-build1 = undefined
+build1 _ 0 = Nothing
+build1 c n = Just $ take n $ iterate (c:) ""
 
 {-
   Написать функцию, аналогичную по возможностям функции build1, но возвращающую при этом
   значение Either String [String], в котором значение слева должно свидетельствовать об
-  одной из следующих особых ситуаций: 
+  одной из следующих особых ситуаций:
   (*) n=0;
   (*) n > 100;
   (*) Роспотребнадзор запрещает создавать строки из символа 'x'.
 -}
 
 build2 :: Char -> Int -> Either String [String]
-build2 = undefined
+build2 _   0 = Left "empty"
+build2 'x' 3 = Left "censorship"
+build2 _   n | n > 100 = Left "too big"
+build2 c   n = Right $ map (`replicate` c) [1..n]
 
 {-
   Параметрами командной строки являются имя файла, символ, целое число.
@@ -39,5 +43,14 @@ build2 = undefined
      Maybe и Either String как функторов).
 -}
 
+main :: IO ()
 main = do
-  undefined
+    [f, c, n] <- getArgs
+
+    -- 1
+    totalLength <$> getArgs >>= print
+    -- 2
+    readFile f >>= print . totalLength . lines
+    -- 3
+    print $ totalLength <$> build1 (head c) (read n)
+    print $ totalLength <$> build2 (head c) (read n)
