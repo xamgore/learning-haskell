@@ -5,6 +5,14 @@ import Control.Applicative hiding (many, optional)
 import Control.Monad
 import Data.Char
 
+
+lookForward :: Char -> Parser Bool
+lookForward c = Parser f
+    where f str = [(c `elem` str, str)]
+
+tap :: Parser a -> b -> Parser b
+tap side val = side >> return val
+
 getc :: Parser Char
 getc = Parser f
   where
@@ -17,8 +25,11 @@ sat pr = do
   guard $ pr c
   return c
 
-char :: Char -> Parser ()
-char x = sat (==x) >> return ()
+char :: Char -> Parser Char
+char x = sat (== x)
+
+notChar :: Char -> Parser Char
+notChar x = sat (/= x)
 
 string :: String -> Parser ()
 string = mapM_ char
@@ -57,4 +68,3 @@ bracket op cl p = do
   x <- p
   symbol cl
   return x
-

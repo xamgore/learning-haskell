@@ -13,15 +13,15 @@ instance Monad Parser where
   p >>= q = Parser (\s ->
                [ (y, s'') | (x, s') <- apply p s,
                             (y, s'') <- apply (q x) s'])
-  fail _ = Parser (\s -> [])
+  fail _ = Parser (const [])
 
 instance MonadPlus Parser where
-  mzero = Parser (\s -> [])
+  mzero = Parser (const [])
   p `mplus` q = Parser (\s -> let ps = apply p s in if null ps then apply q s else ps)
 
 instance Functor Parser where
     fmap = liftM
- 
+
 instance Applicative Parser where
     pure  = return
     (<*>) = ap
