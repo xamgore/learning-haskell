@@ -1,26 +1,37 @@
 import Parser
 import SimpleParsers
 import ParseNumbers
+import Control.Applicative ((<|>))
 
 {- Напишите парсер для вещественных чисел. -}
 float :: Parser Float
-float = undefined
+float = signed float'
+    where
+        float'        = (+) <$> justIntegral <*> maybeFraction
+        justIntegral  = fromIntegral <$> natural
+        maybeFraction = optional 0 (char '.' >> fraction)
 
 {-
   Напишите парсер для представления комплексных чисел,
   записываемых в виде вещественной и мнимой части через запятую
   в круглых скобках, например, "(2.3, 1)".
-  
 -}
+
 complex :: Parser (Float, Float)
-complex = undefined
+complex = do
+    token $ char '('
+    r <- token float
+    token $ char ','
+    i <- token float
+    token $ char ')'
+    return (r, i)
 
 {-
   Напишите парсер для списка комплексных чисел (разделитель — точка с запятой),
   заключённого в квадратные скобки.
 -}
 complexList :: Parser [(Float, Float)]
-complexList = undefined
+complexList = bracket "[" "]" $ sepBy complex (symbol ";")
 
 {-
   Модифицируйте предыдущий парсер таким образом, чтобы в исходной строке
@@ -28,7 +39,11 @@ complexList = undefined
   при этом должна считаться равной нулю).
 -}
 complexList2 :: Parser [(Float, Float)]
-complexList2 = undefined
+complexList2 = complexList' ";"
+
+complexList' :: String -> String -> Parser [(Float, Float)]
+complexList' sep = bracket "[" "]" $ sepBy complexOrFloat (symbol sep)
+    where complexOrFloat = complex <|> flip (,) 0.0 <$> token float
 
 {-
    Модифицируйте предыдущий парсер таким образом, чтобы компоненты списка
@@ -36,6 +51,4 @@ complexList2 = undefined
    требуемое с помощью вспомогательных парсеров, допускающих повторное применение.
 -}
 complexList3 :: Parser [(Float, Float)]
-complexList3 = undefined
-
-
+complexList3 = complexList' ","

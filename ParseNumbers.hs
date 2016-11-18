@@ -14,16 +14,21 @@ addition' = do
 
 addition = digit >>= rest
   where
-    rest m = (liftM (+m) $ char '+' >> digit) <|> return m
+    rest m = fmap (+m) $ char '+' >> digit <|> return m
 
 
 natural = foldl1 (\m n -> m *10 + n) `liftM` many1 digit
 
 
+fraction :: Parser Float
+fraction = fmap (/10.0) $ foldr (\m a -> fromIntegral m + a / 10.0) 0.0 `liftM` many1 digit
+
+
 integer :: Parser Int
-integer = (*) <$> minus <*> natural
-  where
-    minus = (char '-' >> return (-1)) <|> return 1
+integer = signed natural
+
+signed num = (*) <$> minus <*> num
+    where minus = (char '-' >> return (-1)) <|> return 1
 
 
 intList = bracket "[" "]" $ sepBy (token integer) (symbol ",")
