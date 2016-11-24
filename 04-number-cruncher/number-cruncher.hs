@@ -1,4 +1,11 @@
 {-# LANGUAGE EmptyDataDecls #-}
+
+import Control.Monad.Reader
+import Data.Maybe (fromJust)
+import System.Environment
+import Data.List
+import qualified Data.Map as M
+
 {-
   Написать программу, работа которой управляется конфигурационным файлом,
   содержащим строки следующего формата:
@@ -15,22 +22,28 @@
   монады Reader.
 -}
 
-import Control.Monad.Reader
-
-data Config
+data Config = Config Int Int Int deriving (Show)
 
 loadConfig :: FilePath -> IO Config
-loadConfig = undefined
+loadConfig f = (toConfig . map snd . sort . getValues) <$> readFile f
+    where toConfig [d, m, s] = Config d m s
+          getValues  = M.toList . M.fromList . defaults . map split . lines
+          defaults a = [("divisor", 1), ("multiplier", 1), ("summand", 0)] ++ a
+          split xs   = toPair (fromJust $ elemIndex '=' xs) xs
+          toPair i   = (,) <$> take i <*> (read . drop (i+1))
 
 loadData :: FilePath -> IO [Int]
-loadData = undefined
+loadData f = map read . words <$> readFile f
 
--- cruncher :: ???
-cruncher = undefined
+cruncher :: [Int] -> Reader Config [Int]
+cruncher xs = do
+    Config d m s <- ask
+    return $ map (\x -> (x + s) * m `div` d) xs
 
+main :: IO ()
 main = do
-  undefined
-  config <- loadConfig undefined
-  numbers <- loadData undefined
+  [fConf, fData] <- getArgs
+  config <- loadConfig fConf
+  numbers <- loadData fData
   let results = runReader (cruncher numbers) config :: [Int]
   mapM_ print results
