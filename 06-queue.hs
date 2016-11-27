@@ -1,3 +1,4 @@
+import Data.List (elemIndices)
 import Control.Monad.State
 import Control.Arrow
 
@@ -9,17 +10,36 @@ import Control.Arrow
      её пользователю было понятно, что в ней происходит.
 -}
 
-type Que = [Int]
+type Que a = [a]
 
 
-enq :: Int -> State Que ()
-enq x = state (\xs -> ((), x:xs))
+enq :: a -> State (Que a) ()
+enq x = state (mempty &&& (x:))
 
-deq :: State Que Int
+deq :: State (Que a) a
 deq = state (last &&& init)
 
-top :: State Que Int
-top = state (\xs -> (last xs, xs))
+top :: State (Que a) a
+top = state (last &&& id)
+
+has :: Eq a => a -> State (Que a) Bool
+has x = state (elem x &&& id)
 
 
--- wtf? Передаю пламенный привет Трофимчуку.
+--- fifo
+
+load :: Int -> State (Que Int) Bool
+load page = do
+    notFound <- not <$> has page
+    when notFound $ deq >> enq page
+    return notFound
+
+fifo :: [Int] -> [Int]
+fifo queries = timeOf pageFaults
+    where
+        timeOf       = elemIndices True
+        pageFaults   = evalState (traverse load queries) initialState
+        initialState = [-1, -1, -1]
+
+
+testFifo = fifo [5, 6, 5, 7, 8, 5] == [0, 1 {--}, 3, 4, 5]
