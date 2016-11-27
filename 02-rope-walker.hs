@@ -29,14 +29,18 @@ type Problem = (Threat, Int)
 
 type Err = String
 
-readProblems :: FilePath -> IO [Problem]
-readProblems f = readFile f >>= return . map (parse . words) . lines
+-- [(R,2),(L,3),(R,-1),(B,0),(L,1)]
+readProblems :: String -> [Problem]
+readProblems = map (parse . words) . lines
     where parse ["B"]    = (B, 1)
           parse ["L", x] = (L, read x)
           parse ["R", x] = (R, read x)
 
+runFile :: FilePath -> IO (Either Err State)
+runFile f = run . readProblems <$> readFile f
+    where run ps = pipe (map land ps) (0, 0)
+          pipe   = foldl (>=>) return
 
--- [(R,2),(L,3),(R,-1),(B,0),(L,1)]
 
 balance = 3
 
