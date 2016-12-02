@@ -1,3 +1,7 @@
+{-# LANGUAGE TemplateHaskell #-}
+
+import Reporter
+
 {-
   Пользуясь расширением TemplateHaskell, реализуйте следующие
   возможности для обработки любых кортежей размерами от 2 до 100:
@@ -9,7 +13,6 @@
 
 -}
 
-{-# LANGUAGE TemplateHaskell #-}
 
 
 -- Должно быть True
