@@ -28,7 +28,7 @@ integer :: Parser Int
 integer = signed natural
 
 signed num = (*) <$> minus <*> num
-    where minus = (char '-' >> return (-1)) <|> return 1
+    where minus = (char '-' >> return (-1)) <|> (char '+' >> return 1) <|> return 1
 
 
 intList = bracket "[" "]" $ sepBy (token integer) (symbol ",")

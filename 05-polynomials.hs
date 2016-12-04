@@ -2,6 +2,7 @@ import Parser
 import SimpleParsers
 import ParseNumbers
 import Control.Applicative ((<|>))
+import Control.Arrow ((***))
 import Control.Monad
 import Data.List (sortBy)
 
@@ -10,7 +11,20 @@ import Data.List (sortBy)
    Определите тип для многочлена с вещественными коэффициентами.
 -}
 type    Member = (Int, Float)
-newtype Poly   = Poly [Member] deriving (Show)
+newtype Poly   = Poly [Member]
+
+instance Show Poly where
+    show (Poly xs) = dropSign $ concatMap (add . (pow *** coef)) xs
+        where
+            dropSign s = (if s!!1 == '-' then "-" else "") ++ drop 3 s
+            add (x, y) = y ++ x
+            pow p
+                | p == 0    = ""
+                | p == 1    = "x"
+                | otherwise = "x^" ++ show p
+            coef c
+                | c >= 0 = " + " ++ show c
+                | c <  0 = " - " ++ show (-c)
 
 {-
   Реализуйте парсер для многочленов (примеры в файле poly.txt).
@@ -39,10 +53,6 @@ float = signed float'
         float'        = (+) <$> justIntegral <*> maybeFraction
         justIntegral  = fromIntegral <$> natural
         maybeFraction = optional 0 (char '.' >> fraction)
-
-
-    -- apply ( integer >>= \coef -> (string "x^" >> integer) <|> (string "x" >> return 1) <|> (return 0) >>= \pow -> return (coef, pow) ) "-6x^2"
-
 
 {-
    Напишите функцию, которая вычисляет частное и остаток при делении многочлена на многочлен.
