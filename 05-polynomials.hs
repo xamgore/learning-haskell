@@ -2,9 +2,9 @@ import Parser
 import SimpleParsers
 import ParseNumbers
 import Control.Applicative ((<|>))
-import Control.Arrow ((***))
+import Control.Arrow ((***), second, first)
 import Control.Monad
-import Data.List (sortBy)
+import qualified Data.Map as M
 
 
 {-
@@ -26,13 +26,13 @@ instance Show Poly where
                 | c >= 0 = " + " ++ show c
                 | c <  0 = " - " ++ show (-c)
 
+
 {-
   Реализуйте парсер для многочленов (примеры в файле poly.txt).
 -}
 
 poly :: Parser Poly
-poly = Poly . sort' <$> (removeSpaces >> many1 member)
-    where sort' = sortBy (flip compare)
+poly = Poly <$> (removeSpaces >> many1 member)
 
 removeSpaces :: Parser ()
 removeSpaces = Parser f
@@ -57,21 +57,40 @@ float = signed float'
 {-
    Напишите функцию, которая вычисляет частное и остаток при делении многочлена на многочлен.
 -}
-divmod :: Poly -> Poly -> (Poly, Poly)
-divmod = undefined
+-- divmod :: Poly -> Poly -> (Poly, Poly)
+-- Poly xs `divmod` Poly ys = foldl (Poly xs, Poly [(0, 0)]) divide ys
+--     where
+--         diff ([(qp, qc):_], [(dp, dc):_]) = [(qp - dp), (qc / dc)]
+--         divide (Poly quot, Poly rem) d =
+--             let dif = diff quot d in
+
+normalize :: Poly -> Poly
+normalize (Poly ms) = Poly $ zero $ clean $ M.toDescList $ M.fromListWithKey (const (+)) ms
+    where clean     = filter ((/= 0.0) . snd)
+          zero ms   = if null ms then [(0, 0.0)] else ms
+
+add :: Poly -> Poly -> Poly
+Poly x `add` Poly y = normalize $ Poly $ x ++ y
+
+mult :: Poly -> Float -> Poly
+Poly x `mult` y = Poly $ map (second (y *)) x
+
+liftPow :: Poly -> Poly -> Poly
+Poly x `liftPow` Poly [(p, c)] = (Poly $ map (first (+ p)) x) `mult` c
 
 {-
    Напишите функцию, которая вычисляет наибольший общий делитель двух многочленов.
 -}
 poly_gcd :: Poly -> Poly -> Poly
-poly_gcd = undefined
+poly_gcd (Poly a) (Poly b) = foldl divide (Poly a, Poly [(0, 0)]) b
+    where divide = undefined
 
 {-
    Напишите функцию, которая вычисляет наибольший общий делитель списка многочленов.
    Не забудьте воспользоваться свёрткой.
 -}
 poly_gcd_list :: [Poly] -> Poly
-poly_gcd_list = undefined
+poly_gcd_list = foldl1 poly_gcd
 
 {-
    Дан текстовый файл, в каждой строке которого записан один многочлен. Вычислите наибольший
@@ -79,11 +98,11 @@ poly_gcd_list = undefined
    какая-либо строка файла имеет некорректный формат.
 -}
 poly_gcd_file :: FilePath -> IO (Either String Poly)
-poly_gcd_file = undefined
+poly_gcd_file = readFile f >>= return . Right . poly_gcd_list . map (parse poly) . lines
 
 {-
    В параметрах командной строки задано имя файла с многочленами. Найти их наибольший общий делитель.
    Предусмотреть корректную обработку ошибок (неправильное количество параметров командной строки,
    отсутствие файла, неверный формат файла и пр.).
 -}
-main = undefined
+main = head <$> getArgs >>= poly_gcd_file
