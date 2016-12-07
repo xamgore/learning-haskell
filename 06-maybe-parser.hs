@@ -4,6 +4,7 @@
 
 import Control.Applicative
 import Control.Monad
+import Data.Maybe
 
 newtype Parser a = Parser { apply :: String -> Maybe (a, String) }
 
@@ -13,21 +14,21 @@ newtype Parser a = Parser { apply :: String -> Maybe (a, String) }
 -}
 
 instance Functor Parser where
-  fmap f = undefined
+  fmap = liftM
 
 instance Applicative Parser where
-  pure a = undefined
-  p <*> q = undefined
+    pure  = return
+    (<*>) = ap
 
 instance Alternative Parser where
-  empty = undefined
-  p <|> q = undefined
+    (<|>) = mplus
+    empty = mzero
 
 instance Monad Parser where
-  return x = undefined
-  p >>= q = undefined
-  fail _ = undefined
+  return x = Parser $ \s -> Just (x, s)
+  p >>= q  = Parser (apply p >=> \(res, s) -> apply (q res) s)
+  fail _ = Parser $ const Nothing
 
 instance MonadPlus Parser where
-  mzero = undefined
-  p `mplus` q = undefined
+  mzero = Parser $ const Nothing
+  p `mplus` q = Parser (\s -> let ps = apply p s in if isNothing ps then apply q s else ps)
