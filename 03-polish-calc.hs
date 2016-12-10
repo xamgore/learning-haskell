@@ -23,21 +23,47 @@
 -}
 
 
+import Data.Char
+import Data.Maybe
+import Data.Monoid
+import qualified Data.Map as M
 import Control.Monad
-import Control.Monad.State
+import Control.Monad.Writer
+import Control.Monad.Trans
+import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Reader
+import Control.Monad.Trans.State
+import System.Environment
 
 type Stack = [Int]
+type Mem   = M.Map String String
 
-push :: Int -> State Stack ()
-push x = get >>= put . (x:)
+push :: Int -> MaybeT (StateT Stack (ReaderT Mem (Writer (Sum Int)))) ()
+push x = tell (getSum 1) >> lift get >>= lift . put . (x:)
 
-pop :: State Stack Int
-pop = get >>= \(x:xs) -> put xs >> return x
+pop :: MaybeT (StateT Stack (ReaderT Mem (Writer (Sum Int)))) Int
+pop = do
+    tell (getSum 1)
+    st <- lift get
+    guard (not $ null st)
+    lift $ put (tail st)
+    return $ head st
 
-evalRPN :: String -> Int
-evalRPN xs = head $ execState (mapM step $ words xs) []
+empty = M.fromList [("a", "777")]
+
+-- evalRPN :: Mem -> String -> (Stack, Sum Int)
+evalRPN mem xs = runWriter $ runReaderT (execStateT (runMaybeT app) []) mem
   where
+    app = mapM step $ words xs
     step "+" = processTops (+)
     step "*" = processTops (*)
-    step  n  = push (read n)
+    step n | all isAlpha n = lift (lift ask) >>= push . read . fromJust . M.lookup n
+    step n = push (read n)
     processTops op = op `liftM` pop `ap` pop >>= push
+
+main = do
+    mem <- M.fromList . zop <$> getArgs
+    forever (getLine >>= print . evalRPN mem)
+
+zop (x:y:ys) = (x, y) : zop ys
+zop _ = []
