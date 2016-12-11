@@ -12,8 +12,8 @@ data AppConfig = AppConfig {
     } deriving (Show)
 
 data AppState = AppState {
-      stCurDepth :: Int,
-      stCurPath :: FilePath
+      curDepth :: Int,
+      curPath :: FilePath
     } deriving (Show)
 
 type AppLog = [(FilePath, Int)]
@@ -38,24 +38,25 @@ listDirectory' = liftM (filter notDots) . getDirectoryContents
 
 constrainedCount :: MyApp ()
 constrainedCount = do
-  maxDepth <- cfgMaxDepth `liftM` ask
-  st <- get
-  let curDepth = stCurDepth st
-  when (curDepth < maxDepth) $ do
-    let path = stCurPath st
-    contents <- liftIO $ listDirectory' $ path
-    tell $ [(path, length contents)]
-    forM_ contents $ \name -> do
-     let newPath = path </> name
-     let newDepth = curDepth + 1
-     isDir <- liftIO $ doesDirectoryExist newPath
-     when isDir $ do
-       put $ st {stCurDepth = newDepth, stCurPath = newPath}
-       constrainedCount
+    st <- get
+    let depth = curDepth st
+    maxDepth <- cfgMaxDepth `liftM` ask
+
+    when (depth < maxDepth) $ do
+        let path = curPath st
+        contents <- liftIO $ listDirectory' $ path
+        tell $ [(path, length contents)]
+
+        forM_ contents $ \name -> do
+            let newPath  = path </> name
+            let newDepth = depth + 1
+            isDir <- liftIO $ doesDirectoryExist newPath
+
+            when isDir $ do
+            put $ st {stCurDepth = newDepth, stCurPath = newPath}
+            constrainedCount
 
 main = do
-  [d, p] <- getArgs
-  (_, xs) <- runMyApp constrainedCount (read d) p
-  print xs
-
-
+    [d, p] <- getArgs
+    (_, xs) <- runMyApp constrainedCount (read d) p
+    print xs
