@@ -1,13 +1,39 @@
-import Test.HUnit
+import Test.Tasty
+import Test.Tasty.QuickCheck
+import Test.Tasty.HUnit
+import Data.List
+import Data.Ord
+
 import Task1
 import Task2
-import Task3
 
 
-main :: IO Counts
-main = runTestTT $ TestList (concat [
-    test_nEven, test_sum_ab_rec, test_sum_ab_iter, test_doubleElems])
+main = defaultMain tests
 
+tests :: TestTree
+tests = testGroup "Tests" [properties, unitTests]
+
+
+properties = testGroup "(checked by QuickCheck)" [
+        testProperty "removeNeg"   prop_removeNeg,
+        testProperty "doubleEvens" prop_doubleEvens,
+        testProperty "zip'"        prop_zip
+    ]
+
+prop_removeNeg :: [Int] -> Bool
+prop_removeNeg = (Nothing ==) . find (< 0) . removeNeg
+
+prop_doubleEvens :: [Int] -> Bool
+prop_doubleEvens xs = map (\x -> if even x then 2*x else x) xs == doubleEvens xs
+
+prop_zip :: [Int] -> [Int] -> Bool
+prop_zip xs ys = zip xs ys == zip' xs ys
+
+
+
+unitTests = testGroup "Unit tests" $ concat [
+        test_nEven, test_sum_ab_rec, test_sum_ab_iter, test_doubleElems
+    ]
 
 test_nEven = testWithData nEven [
         ("nEven 1", [1, 2, 3, 4], 2),
@@ -31,4 +57,4 @@ test_doubleElems = testWithData doubleElems [
 
 
 testWithData f data' = map assert' data'
-    where assert' (lab, input, output) = TestCase $ assertEqual lab output (f input)
+    where assert' (lab, input, output) = testCase lab $ f input @?= output
