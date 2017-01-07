@@ -7,10 +7,10 @@ import Data.Text.IO         as TIO
 import System.Environment
 
 spaces = skipWhile isHorizontalSpace
-number = decimal  <* spaces
-comma  = char ',' <* spaces
+number = (decimal  <* spaces) <?> "number expected"
+comma  = (char ',' <* spaces) <?> "comma expected"
 pair   = (,) <$> (number <* comma) <*> (number <* endOfLine)
-pairs  = many pair <* endOfInput
+pairs  = manyTill pair endOfInput
 
 tshow = T.pack . show
 
@@ -22,6 +22,11 @@ sum' (a, b) = T.concat [ tshow a, "+", tshow b, "=", tshow $ a + b ]
 main = do
     [inf, outf] <- getArgs
     input <- TIO.readFile inf
-    let (Right res) = parseOnly pairs input
-    let sums = T.unlines $ map sum' res
-    TIO.writeFile outf sums
+
+    -- print $ parse pairs input
+
+    case parseOnly pairs input of
+        (Right res) -> do
+            let sums = T.unlines $ map sum' res
+            TIO.writeFile outf sums
+        (Left err) -> print err
